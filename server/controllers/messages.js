@@ -3,8 +3,8 @@ const {
 } = require('../models/message');
 
 exports.addMessage = async (req, res) => {
-    const { message, sender } = req.body;
-    const messageObj = await addMessage({ message, sender });
+    const { message, senderId } = req.body;
+    const messageObj = await addMessage({ message, senderId });
     res.json(messageObj);
 }
 

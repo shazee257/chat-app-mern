@@ -26,4 +26,4 @@ exports.addMessageToChatRoom = (roomId, messageId) =>
 
 exports.getChatRoomMessages = (roomId) =>
     ChatRoomModel.find({ _id: roomId })
-        .populate('messages');
+        .populate('messages users');

@@ -3,7 +3,8 @@ const userApi = require('./api/user');
 const chatRoomApi = require('./api/chatRoom');
 const messageApi = require('./api/messages');
 const express = require('express');
-const { handleConnection } = require('./controllers/chatRoom');
+const { chatRoomsSocket } = require('./controllers/chatRoom');
+const { usersSocket } = require('./controllers/user');
 const app = express();
 
 app.use(express.json());
@@ -17,8 +18,9 @@ const io = require('socket.io')(server, {
 app.use('/users', userApi);
 app.use('/rooms', chatRoomApi);
 app.use('/messages', messageApi);
-
-io.on('connection', handleConnection);
+// pass socket.io to the controller and io
+io.on('connection', (socket) => chatRoomsSocket(socket, io));
+// io.on('connection', (socket) => usersSocket(socket, io));
 
 server.listen(5000, () => {
     console.log('server is listening on port 5000');

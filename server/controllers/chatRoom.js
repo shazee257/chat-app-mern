@@ -24,11 +24,11 @@ exports.getChatRoomById = async (req, res) => {
     res.json(chatRoom);
 }
 
-// exports.addUserToChatRoom = async (req, res) => {
-//     const { roomId, userId } = req.body;
-//     const chatRoom = await addUserToChatRoom(roomId, userId);
-//     res.json(chatRoom);
-// }
+exports.addUserToChatRoom = async (req, res) => {
+    const { roomId, userId } = req.body;
+    const chatRoom = await addUserToChatRoom(roomId, userId);
+    res.json(chatRoom);
+}
 
 exports.addMessageToChatRoom = async (req, res) => {
     const { roomId, messageId } = req.body;
@@ -43,10 +43,15 @@ exports.getChatRoomMessages = async (req, res) => {
 }
 
 // Socket.io event listener for new connections
-exports.handleConnection = async (socket) => {
+exports.chatRoomsSocket = async (socket, io) => {
     console.log('A user connected');
 
-    socket.emit('message', 'Welcome to the chat app');
+    socket.emit('info', 'Welcome to the chat app');
+
+    socket.on('sendMessage', (message) => {
+        console.log(message);
+        io.emit('sendMessage', message);
+    });
 
     // // Join a chat room
     // socket.on('joinRoom', async ({ roomId, userId }) => {
@@ -64,15 +69,15 @@ exports.handleConnection = async (socket) => {
     // });
 
     // Send a new message to a chat room
-    socket.on('sendMessage', async ({ roomId, messageId }) => {
-        try {
-            await addMessageToChatRoom(roomId, messageId);
-            const messages = await getChatRoomMessages(roomId);
-            io.to(roomId).emit('messages', { messages });
-        } catch (error) {
-            console.log(error.message);
-        }
-    });
+    // socket.on('sendMessage', async ({ roomId, messageId }) => {
+    //     try {
+    //         await addMessageToChatRoom(roomId, messageId);
+    //         const messages = await getChatRoomMessages(roomId);
+    //         io.to(roomId).emit('messages', { messages });
+    //     } catch (error) {
+    //         console.log(error.message);
+    //     }
+    // });
 
     // Socket.io event listener for disconnections
     socket.on('disconnect', () => {
