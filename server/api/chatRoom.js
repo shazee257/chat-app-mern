@@ -5,7 +5,7 @@ const {
     getChatRooms,
     getChatRoomById,
     addUserToChatRoom,
-    addMessageToChatRoom,
+    // addMessageToChatRoom,
     getChatRoomMessages
 } = require('../controllers/chatRoom');
 
@@ -14,7 +14,7 @@ router.get('/', getChatRooms);
 router.get('/messages/:roomId', getChatRoomMessages);
 router.get('/:roomId', getChatRoomById);
 router.put('/add-user', addUserToChatRoom);
-router.put('/add-message', addMessageToChatRoom);
+// router.put('/add-message', addMessageToChatRoom);
 
 module.exports = router;
 

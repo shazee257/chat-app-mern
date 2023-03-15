@@ -1,63 +1,106 @@
 import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
-import { nanoid } from 'nanoid';
+import apiCall from '@/apiCall';
 
 const socket = io('http://localhost:5000');
-const chatRooms = ["JavaScript", "C#", "Python"];
-const users = ["Alice", "Bob", "Charlie", "Dave"];
-const chatList = [
-  { id: "1", user: "Alice", message: "Hello" },
-  { id: "2", user: "Bob", message: "Hi" },
-  { id: "3", user: "Alice", message: "How are you?" },
-  { id: "4", user: "Bob", message: "I'm fine. How are you?" },
-  { id: "5", user: "Alice", message: "I'm fine too." },
-];
 
 export default function Home() {
+  const [users, setUsers] = useState([]);
+  const [rooms, setRooms] = useState([]);
   const [message, setMessage] = useState('');
-  const [chat, setChat] = useState(chatList);
-  const [selectedRoom, setSelectedRoom] = useState('');
-  const [selectedUser, setSelectedUser] = useState('');
+
+  const [chat, setChat] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState('6410aa6bf3eaabaa73f8ddfe');
+  const [selectedUserId, setSelectedUserId] = useState('6410a8c7f3eaabaa73f8dde7');
 
   const sendChat = (e) => {
     e.preventDefault();
     socket.emit('sendMessage',
-      { id: nanoid(8), user: selectedUser, message });
+      { userId: selectedUserId, roomId: selectedRoomId, message });
     setMessage('');
   };
-
-  useEffect(() => {
-    console.log("chat", chat);
-  }, [chat]);
 
   socket.on('info', (payload) => console.log("info payload >> ", payload));
 
   socket.on('sendMessage', (payload) => {
+    console.log("sendMessage payload >>>>> ", payload);
     setChat([...chat, payload]);
   });
+
+  const getMessagesByRoomId = async () => {
+    const [data, error] = await apiCall({
+      method: 'GET',
+      endPoint: `rooms/messages/${selectedRoomId}`,
+    });
+
+    if (error) {
+      console.log('error: ', error);
+    } else {
+      setChat(data.data?.messages);
+      setUsers(data.data?.users);
+      console.log('messages data: ', data.data);
+    }
+  };
+
+  const getAllUsers = async () => {
+    const [data, error] = await apiCall({
+      method: 'GET',
+      endPoint: 'users',
+    });
+
+    if (error) {
+      console.log('error: ', error);
+    } else {
+      setUsers(data?.data);
+      console.log('Users data?.data: ', data?.data);
+    }
+  };
+
+  const getAllRooms = async () => {
+    const [data, error] = await apiCall({
+      method: 'GET',
+      endPoint: 'rooms',
+    });
+
+    if (error) {
+      console.log('error: ', error);
+    } else {
+      setRooms(data?.data);
+      console.log('Rooms data?.data: ', data?.data);
+    }
+  };
+
+  useEffect(() => {
+    getAllUsers();
+    getAllRooms();
+  }, []);
+
+  useEffect(() => {
+    getMessagesByRoomId();
+  }, [selectedRoomId]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
       <h1 className="text-6xl font-bold text-blue-600">Chatty App</h1>
-      <div className="flex min-h-screen w-full justify-between">
+      <div className="flex h-[500px] w-full justify-between">
         <div className="w-1/4 h-full p-4 m-16">
           <h2 className="text-2xl font-bold mb-4">Chat Rooms</h2>
           <ul className="list-none">
-            {chatRooms.map((room) => (
-              <li key={room} onClick={() => setSelectedRoom(room)}
-                className={`cursor-pointer mb-2 text-blue-500 hover:text-blue-600 ${selectedRoom === room && 'font-bold'}`}>
-                {room}
+            {rooms.map((room) => (
+              <li key={room._id} onClick={() => setSelectedRoomId(room._id)}
+                className={`cursor-pointer mb-2 text-blue-500 hover:text-blue-600 ${selectedRoomId === room._id && 'font-bold'}`}>
+                {room.name}
               </li>
             ))}
           </ul>
         </div>
 
         <main className="flex flex-col items-center justify-center w-full px-20 text-center">
-          <div className="w-full h-5/6 p-4 mt-8 mb-8 border border-gray-300 rounded-lg overflow-scroll">
-            {chat.map(({ id, user, message }) => (
-              <div key={id} className="mb-4">
-                <p className="text-gray-400 text-xs">{user}</p>
-                <p className="text-lg">{message}</p>
+          <div className="w-full h-full p-4 mt-8 mb-8 border border-gray-300 rounded-lg overflow-scroll">
+            {chat.map((msg) => (
+              <div key={msg._id} className="mb-4">
+                <p className="text-gray-400 text-xs">{msg.senderId?.username}</p>
+                <p className="text-lg">{msg.message}</p>
               </div>
             ))}
           </div>
@@ -83,18 +126,14 @@ export default function Home() {
           <h2 className="text-2xl font-bold mb-4">Users</h2>
           <ul className="list-none">
             {users.map((user) => (
-              <li key={user} onClick={() => setSelectedUser(user)}
-                className={`cursor-pointer mb-2 text-blue-500 hover:text-blue-600 ${selectedUser === user && 'font-bold'}`}>
-                {user}
+              <li key={user._id} onClick={() => setSelectedUserId(user._id)}
+                className={`cursor-pointer mb-2 text-blue-500 hover:text-blue-600 ${selectedUserId === user._id && 'font-bold'}`}>
+                {user.username}
               </li>
             ))}
           </ul>
         </div>
       </div>
     </div>
-
-
-
-
   )
 }

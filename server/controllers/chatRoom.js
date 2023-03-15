@@ -7,6 +7,8 @@ const {
     getChatRoomMessages
 } = require('../models/chatRoom');
 
+const { addMessage } = require('../models/message');
+
 exports.addChatRoom = async (req, res) => {
     const { name } = req.body;
     const chatRoom = await addChatRoom({ name });
@@ -30,11 +32,21 @@ exports.addUserToChatRoom = async (req, res) => {
     res.json(chatRoom);
 }
 
-exports.addMessageToChatRoom = async (req, res) => {
-    const { roomId, messageId } = req.body;
-    const chatRoom = await addMessageToChatRoom(roomId, messageId);
-    res.json(chatRoom);
+// exports.addMessageToChatRoom = async (req, res) => {
+//     const { roomId, messageId } = req.body;
+//     const chatRoom = await addMessageToChatRoom(roomId, messageId);
+//     res.json(chatRoom);
+// }
+
+async function addMessageToRoom(roomId, messageId) {
+    // add message to room
+    const res = await addMessageToChatRoom(roomId, messageId);
+    return res;
 }
+
+
+
+
 
 exports.getChatRoomMessages = async (req, res) => {
     const { roomId } = req.params;
@@ -48,9 +60,26 @@ exports.chatRoomsSocket = async (socket, io) => {
 
     socket.emit('info', 'Welcome to the chat app');
 
-    socket.on('sendMessage', (message) => {
-        console.log(message);
-        io.emit('sendMessage', message);
+    socket.on('sendMessage', (payload) => {
+        // add message to db
+        addMessage({
+            senderId: payload.userId,
+            message: payload.message
+        }).then((message) => {
+            console.log(message);
+            // add message to room
+            addMessageToRoom(payload.roomId, message._id).then((res) => {
+                console.log(res);
+                // send message
+                socket.emit('sendMessage', { ...payload, _id: message._id });
+            });
+        });
+
+
+
+
+        // console.log(payload);
+        // io.emit('sendMessage', payload);
     });
 
     // // Join a chat room

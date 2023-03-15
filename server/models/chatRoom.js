@@ -25,5 +25,11 @@ exports.addMessageToChatRoom = (roomId, messageId) =>
         ({ _id: roomId }, { $push: { messages: messageId } }, { new: true })
 
 exports.getChatRoomMessages = (roomId) =>
-    ChatRoomModel.find({ _id: roomId })
-        .populate('messages users');
+    ChatRoomModel.findOne({ _id: roomId })
+        .populate({
+            path: 'messages',
+            populate: {
+                path: 'senderId',
+                model: 'User'
+            }
+        }).populate('users');

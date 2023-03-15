@@ -3,10 +3,12 @@ const userApi = require('./api/user');
 const chatRoomApi = require('./api/chatRoom');
 const messageApi = require('./api/messages');
 const express = require('express');
+const cors = require('cors');
 const { chatRoomsSocket } = require('./controllers/chatRoom');
 const { usersSocket } = require('./controllers/user');
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
