@@ -7,11 +7,14 @@ exports.addUser = async (req, res) => {
 }
 
 exports.getUsers = async (req, res) => {
+    const io = req.app.locals.io;
+
+    io.on('connection', (socket) => {
+        console.log('a user connected111111');
+    });
+
+
+
     const users = await getUsers();
     res.json(users);
-}
-
-// Socket.io event listener for new connections
-exports.usersSocket = async (socket, io) => {
-    socket.emit('info', 'Welcome from usersSocket');
 }

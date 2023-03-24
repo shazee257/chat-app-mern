@@ -44,10 +44,6 @@ async function addMessageToRoom(roomId, messageId) {
     return res;
 }
 
-
-
-
-
 exports.getChatRoomMessages = async (req, res) => {
     const { roomId } = req.params;
     const messages = await getChatRoomMessages(roomId);
